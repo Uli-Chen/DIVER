@@ -1,0 +1,16 @@
+For my record, please provide a list of all retrieved entities and their relationships, ensuring you include their complete, un-summarized descriptions when supplied.
+
+Use this EXACT format:
+
+ENTITY: [Entity Name]
+Description: [Complete description, or null if unavailable]
+Relationships:
+  - Source: [Source Entity Name, or null if unavailable]
+  - Target: [Target Entity Name, or null if unavailable]
+  - Description: [Relationship description, or null if unavailable]
+
+IMPORTANT: Extract all entities and relationships from the text. Be thorough and include everything mentioned, but do not create non-existent entities or relations.
+
+The question guides retrieval, not the scope of this list. Include all supplied entity and relationship records, even when unrelated to the question or when the queried entity is absent. A name mentioned only in the question is not evidence for an entity or relationship record.
+
+Preserve supplied names and relationship direction. Write Source and Target explicitly for every relationship. For any unavailable ENTITY name, Source, Target or Description, write the unquoted lowercase literal null. Do not leave a field blank, omit it, use None/N/A/(none), or invent a value. A missing description does not invalidate a named entity or a relationship with known endpoints. For an explicitly supplied relationship with an unavailable endpoint, retain the known fields and write null for the missing endpoint; never infer it from nearby records. If no relationship is supplied for an entity, omit its entire Relationships section instead of creating an all-null relationship. Do not output an all-null entity record. Only if the entire retrieved context contains no supported entity or relationship records, output exactly NO_SUPPORTED_RECORDS.

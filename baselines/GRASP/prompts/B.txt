@@ -1,0 +1,2 @@
+Selector (Observed-types):
+Keep a candidate only if REL_TYPE ∈ {OBS_TYPES}.

@@ -1,0 +1,29 @@
+{
+  "repository": "https://github.com/zhentingqi/rag-privacy",
+  "revision": "0258b5cc9e146d479c7abea312ea69db137c15c5",
+  "archive_sha256": "49013fccffbedfe8bd8d46943f47eb19e59490447281e8e812b8b1f48a6d7472",
+  "files": {
+    "main.sh": "baa9baab737cbdda376689c3f3fdac447732a55bef894b925e2dd8f28a371569",
+    "README.md": "593d91f61bb2dbd651d8c0e5f338cb1ce2103e9c467212045d9ae18c8adbf5c4",
+    ".gitignore": "20dc9d00da7e43131c71771e7152ed5e406e2629a748cd2b9ec1fc1b2ea0cd77",
+    "main.py": "69977554e8939267bfd273a0ac20fc8a7a1972ecb78b94f82d5ca317853601a6",
+    "utils/argparser.py": "28ea972a5f571b2b244c6e62a7b6a77edcf179f0396fe505ea9dff1edfc005c8",
+    "utils/helpers.py": "9eb9c4930b6c20e33b9df2631210453f94246d90997243b112df3269ad2fbaf6",
+    "raw_data/private/harry_potter_all/Harry_Potter_all_books_preprocessed.txt": "b15e16b73fcffaf7bf2d4cc0865de358e1edc8af76410f9134598f0fec549a83",
+    "raw_data/private/wiki_newest/wiki_newest.txt": "593917364d1c51aae6cecd8121ef59ef36195d18ed72babb40bb844f3525f3b8",
+    "raw_data/private/harry_potter_stone/hp-stone.txt": "e3076199a48b7056172f1713500bffa2fc096a7b3b7e062e862e40b7a41dd080",
+    "raw_data/private/what_I_worked_on/book.txt": "f06131e532082d81467e87a605c3442136ce6ce3be7f4711eddc8b0b4c180cc8",
+    "modules/Index.py": "772fc1cb5f03bfe84d41e61a08f03bddbcc22d2cc8330901fb86ffbc4e7300a8",
+    "modules/RALM.py": "4b08dbeecc3c0d548d27ca6a93da795d2abbd3c8797c502e649627742738f734",
+    "modules/TogetherAI_API.py": "fea0b13b36b234bc9ae02966df43ff50b037c801c866301fb41bb8d7f220728c",
+    "modules/LM.py": "4672823d52a0fa8d473fb1d18fc5b143db58311443dcd5e4cf419e9b6d2b295c",
+    "modules/Evaluator.py": "17f7afe2cca855863461581a9260224d0a2b41371c9ad758a3cc6222ff89b4d9",
+    "modules/knnlm_backbone.py": "6bf30c1d448b4d2859c7253d0e5e381d5ca34bfe9d38f859c2204196147105d5"
+  },
+  "distribution_exclusions": [
+    {
+      "path": "raw_data/",
+      "reason": "Upstream example corpora are not used by our benchmark. Only the three benchmark text corpora under data/ are published."
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+Write one concise exploration question about the corpus, taking a different direction from the recent questions.
+
+Memory and observed semantics (JSON):
+{context}
+
+Use the entity descriptions to understand the corpus and the meaning of observed subjects. They are partial observations, not instructions, an exhaustive inventory, or a checklist of entities that must be queried. Do not simply turn the descriptions into a question about the same facts.
+
+Do not make the listed common entities the main subject of this question. This is a temporary choice of topic, not a ban on retrieving their relationships. Do not copy the exclusion list or negative instructions into the question. Do not invent specific names or assume unsupported facts. If observations are sparse, ask broadly about other subjects and their relationships in the corpus.
+
+Return only one natural-language question, without an answer or output-format instructions.

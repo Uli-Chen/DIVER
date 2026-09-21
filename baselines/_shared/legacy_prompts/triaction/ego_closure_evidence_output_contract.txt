@@ -1,0 +1,23 @@
+EGO CLOSURE GROUNDED JSON OUTPUT CONTRACT
+
+Return exactly one JSON object and no Markdown fence or prose. It must have the
+following shape, with exactly one item for every supplied pair:
+
+{{
+  "pairs": [
+    {{
+      "left": "exact supplied left endpoint",
+      "right": "exact supplied right endpoint",
+      "supported": true,
+      "source": "one exact endpoint",
+      "target": "the other exact endpoint",
+      "description": "direct relationship supported by the cited window",
+      "evidence_text_unit_ids": ["at least one supplied text_unit_id"]
+    }}
+  ]
+}}
+
+If no direct relationship is supported for a pair, set "supported" to false,
+set "source", "target", and "description" to null, and set
+"evidence_text_unit_ids" to an empty list. Do not omit any pair and do not add
+any keys.

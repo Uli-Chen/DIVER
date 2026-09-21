@@ -1,0 +1,2 @@
+# Preserve original corpus bytes; generated artifacts are not published.
+data/**/*.txt -text

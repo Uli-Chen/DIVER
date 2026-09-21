@@ -1,0 +1,17 @@
+EVIDENCE AND OUTPUT CONTRACT
+
+Use only relationships supported by the retrieved GraphRAG evidence. Include the
+supporting GraphRAG citation in every relationship description. Do not infer a
+relationship merely because two entities occur in the same context.
+
+Use this exact parseable format for each entity and relationship:
+
+ENTITY: [Entity Name]
+Description: [Complete evidence-grounded description]
+Relationships:
+  - Source: [Source Entity Name]
+  - Target: [Target Entity Name]
+  - Description: [Direct relationship description with GraphRAG citation]
+
+Preserve relationship direction. If no requested relationship is supported,
+state that no supported relationship was found and emit no relationship block.

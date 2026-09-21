@@ -1,0 +1,308 @@
+{
+  "files": {
+    "novel/novel_001.txt": {
+      "sha256": "c45277247d2c33d338ed5a0c8ab1400def2a4e4cb9be717b27e4766d4ae21d3a",
+      "bytes": 168275
+    },
+    "novel/novel_002.txt": {
+      "sha256": "cc4d982326663d1bacccb8f9ab24b960ffac4c08bc8081be5c9f572440ec5cb8",
+      "bytes": 337867
+    },
+    "novel/novel_003.txt": {
+      "sha256": "4421dfa623fde77950367abbf1aefa3a1c9ff1888c6d982da18b97b845414d47",
+      "bytes": 193099
+    },
+    "novel/novel_004.txt": {
+      "sha256": "9fe68bb38717d43941260d4145aeeb18449dc3cc5e556e2b2663fd0ecc534f9b",
+      "bytes": 342669
+    },
+    "novel/novel_005.txt": {
+      "sha256": "a6e7e476597ccb66f4128f604de6cf59c992a7fbcc59407db41d4102990beed8",
+      "bytes": 458553
+    },
+    "novel/novel_006.txt": {
+      "sha256": "179f0212c5cbc84d02ac8381fb906badfbbbdfd31c4d7ebd5194af16c2a8d817",
+      "bytes": 164037
+    },
+    "novel/novel_007.txt": {
+      "sha256": "9c291ad859e9bfc719a4f1517259f02803445a7d82c56fa4fa4c392ceb1b5fa1",
+      "bytes": 244217
+    },
+    "novel/novel_008.txt": {
+      "sha256": "e06d2df497c0347bb7e0a557ba81883b6389b7a0a0a7fb2a5bdc51590ac865f6",
+      "bytes": 304565
+    },
+    "novel/novel_009.txt": {
+      "sha256": "4c044fb03d0722cfd21a4382b1f3291ac079aa9fa92ab70b223dcc81080dbbea",
+      "bytes": 316623
+    },
+    "novel/novel_010.txt": {
+      "sha256": "0fcaf9918fe6c4ab8a56e134656f0c148f1c5b52cc58ce8230f9298813becaa0",
+      "bytes": 225823
+    },
+    "novel/novel_011.txt": {
+      "sha256": "d6fdf69b7b3393c9de10bd6639eab302d4e421ad9701b4ae4b12902f4f136382",
+      "bytes": 144667
+    },
+    "novel/novel_012.txt": {
+      "sha256": "67ad65e83456305c267e666be0a7100ad5711fa2f73697dbe20d606102148dd8",
+      "bytes": 99077
+    },
+    "novel/novel_013.txt": {
+      "sha256": "10da6ed09e26e0ffb763c7b295edede135635382f202537a2a36e44a249ee891",
+      "bytes": 255528
+    },
+    "novel/novel_014.txt": {
+      "sha256": "ab294b351e207ce2edcbf8b8cbe7991e0baeeafc6b290045e178df5d76fda8cf",
+      "bytes": 344400
+    },
+    "novel/novel_015.txt": {
+      "sha256": "e9ee2d4816ae58b7cf4f1c0ff17f3b0f72705551474b50bb8a3ca84288ddc920",
+      "bytes": 267308
+    },
+    "novel/novel_016.txt": {
+      "sha256": "109873cb9a09ac89dbb9d5c15379ad0385ad0fb890d0c995cfa8903bec20a2ad",
+      "bytes": 190835
+    },
+    "novel/novel_017.txt": {
+      "sha256": "af67fbb8a3105419aa78a35e9d542bac5a352afdabeddb73a8a4e237acbbad1c",
+      "bytes": 308775
+    },
+    "novel/novel_018.txt": {
+      "sha256": "b4ba020399113f08b37b821af27afe62ed45ccd76f5e5ae702b0c2675b14d037",
+      "bytes": 137924
+    },
+    "novel/novel_019.txt": {
+      "sha256": "1741fd87aa4772d01bdb745d98aae6a2cfda7570f5adccf77ccec82b528ec7f8",
+      "bytes": 92797
+    },
+    "novel/novel_020.txt": {
+      "sha256": "3d0ec8629ac4766f7ff1b3f785ffdccc5add832099141094ffeeafbc09a0339a",
+      "bytes": 237567
+    },
+    "medical/medical_001.txt": {
+      "sha256": "13a035d48e0283a47f9abbea83dc4c4ac95b907c62b7ed18208fcb86ffa0ff45",
+      "bytes": 7906
+    },
+    "medical/medical_002.txt": {
+      "sha256": "b7e7efefe70e79391fe5f97ccde2f5a6ae8042cedbbf0fb3d70e9cc376a316ef",
+      "bytes": 14756
+    },
+    "medical/medical_003.txt": {
+      "sha256": "294b2650039a7df593a15671a2259f8f1f5791ba1a91f3cea07752758c71f1c0",
+      "bytes": 59176
+    },
+    "medical/medical_004.txt": {
+      "sha256": "fa95963509cbc976907fbfea8880dcd186cff7455277806175b40421a97d7f13",
+      "bytes": 7469
+    },
+    "medical/medical_005.txt": {
+      "sha256": "1c22618d73bce049926ffcf442844a588ae5f4b01c7904e1cd19823040444769",
+      "bytes": 8812
+    },
+    "medical/medical_006.txt": {
+      "sha256": "27af1fb383f4e205d20e6da16da667575c957555c1f4935560a58c1c9f10e16d",
+      "bytes": 5483
+    },
+    "medical/medical_007.txt": {
+      "sha256": "d9b2ff913533da814e1d39f4fe48d5666d2eeaa9b68352cb56037e39aa1ad4b4",
+      "bytes": 5443
+    },
+    "medical/medical_008.txt": {
+      "sha256": "8b0c3b1fee1fcef658841023af8e14c7b180cdf529b0df02d1ae4c9bcbab061f",
+      "bytes": 9325
+    },
+    "medical/medical_009.txt": {
+      "sha256": "12473870a6a9e4aacedb3d9f047369e2290740eb63694e6e18e4c7cc5dd63b41",
+      "bytes": 8754
+    },
+    "medical/medical_010.txt": {
+      "sha256": "bb8edb462180fd03d3d335024f8490fcbe396143dc5a417c840073e03bbec2f5",
+      "bytes": 957
+    },
+    "medical/medical_011.txt": {
+      "sha256": "15e1309545c87782efce0ad2075e5d33e42f36719551745a7f3dd6b7ddc9abcb",
+      "bytes": 10078
+    },
+    "medical/medical_012.txt": {
+      "sha256": "913eac964b8838189e18f4f60942f81d862fb300d6d5a7f58f75c054b2eaf684",
+      "bytes": 34521
+    },
+    "medical/medical_013.txt": {
+      "sha256": "c9369b6c57cc610257fbca880574a6598782756c2bd211d1fbf35a5bc5d61697",
+      "bytes": 38727
+    },
+    "medical/medical_014.txt": {
+      "sha256": "86b1cf33a19beb527cdc40f14771993b049df22b18bccdf9ef5b7878cc1b2748",
+      "bytes": 48299
+    },
+    "medical/medical_015.txt": {
+      "sha256": "8660808d17ea79cb0349f6052dfccf7b762e21c6c147115f922fad6e66423c15",
+      "bytes": 40407
+    },
+    "medical/medical_016.txt": {
+      "sha256": "2f413229f57e364febafcaf6b9ffb86a375000581660562b18c8b928f6fdaf7e",
+      "bytes": 9199
+    },
+    "medical/medical_017.txt": {
+      "sha256": "62f6a5ab5668cb771e3df950a7b4217cd2fd0994da3935d02f31915b995bd65e",
+      "bytes": 22381
+    },
+    "medical/medical_018.txt": {
+      "sha256": "118a45abc83e1b554aa18cebdf6e79904ebc7471a4ffaa1143632da526c85ebc",
+      "bytes": 10784
+    },
+    "medical/medical_019.txt": {
+      "sha256": "c773196aa7d3eac6438e5104a370de0f62399688621c18257500ac8dd11e0876",
+      "bytes": 9811
+    },
+    "medical/medical_020.txt": {
+      "sha256": "c9369b6c57cc610257fbca880574a6598782756c2bd211d1fbf35a5bc5d61697",
+      "bytes": 38727
+    },
+    "medical/medical_021.txt": {
+      "sha256": "fa95963509cbc976907fbfea8880dcd186cff7455277806175b40421a97d7f13",
+      "bytes": 7469
+    },
+    "medical/medical_022.txt": {
+      "sha256": "2f413229f57e364febafcaf6b9ffb86a375000581660562b18c8b928f6fdaf7e",
+      "bytes": 9199
+    },
+    "medical/medical_023.txt": {
+      "sha256": "7be6d02266935bb95d30e1c668eadd7876be2b1920644c44853f62228ba566f9",
+      "bytes": 10596
+    },
+    "medical/medical_024.txt": {
+      "sha256": "c59df946b341250cc336f47b69dabbd5f7a73f7f747aafae6e9ceb44e311fe1c",
+      "bytes": 42023
+    },
+    "medical/medical_025.txt": {
+      "sha256": "f5e34c117a1abf7ee9d6936dd5187807c17e5b403331b06ea71a456593c0b7c2",
+      "bytes": 38794
+    },
+    "medical/medical_026.txt": {
+      "sha256": "e051c50948c8dace686ba125da079895cb07f6809c8cf383ee1b526f3adbb93a",
+      "bytes": 7516
+    },
+    "medical/medical_027.txt": {
+      "sha256": "a29348f51ad7a8e914386b36853ea54c6f61043ef1ac89939de000de5a3b219e",
+      "bytes": 8274
+    },
+    "medical/medical_028.txt": {
+      "sha256": "59524947d7f3156b7ebf7a843ba2a923774e81398b0c4075553e76137bd2fec9",
+      "bytes": 6191
+    },
+    "medical/medical_029.txt": {
+      "sha256": "314827d57508bd321ccf1352f22d13e9a0be1f161fcd7c56e0c15af16e99f256",
+      "bytes": 5445
+    },
+    "medical/medical_030.txt": {
+      "sha256": "4d47712bfbe6ac0342e00b89a9f75e637ef1a2b770882bb18f0b42309cf627b5",
+      "bytes": 66069
+    },
+    "medical/medical_031.txt": {
+      "sha256": "5d0de6d713d13acbe5622f3ecc9971df8d0622023d6fd5b07dba4d2f1e7ff112",
+      "bytes": 53879
+    },
+    "medical/medical_032.txt": {
+      "sha256": "278df09412f0b4e08ac25273ce66db55c9b0ed856e2cf58697b8d5049cfc7529",
+      "bytes": 23544
+    },
+    "medical/medical_033.txt": {
+      "sha256": "878e7e64c247d645d08e41fc215c80f356dcdf6ed52cd5f3562d3d50364ee30a",
+      "bytes": 31337
+    },
+    "medical/medical_034.txt": {
+      "sha256": "a61364277dbbd6f0e0549115b485fe3c86a98e7f892a9c7b56d08626046ecb1a",
+      "bytes": 71158
+    },
+    "medical/medical_035.txt": {
+      "sha256": "a3086fe1688b99214a542ba894ee9a81460e2687036b6a0397f903f18799561b",
+      "bytes": 2666
+    },
+    "medical/medical_036.txt": {
+      "sha256": "cfb39fabc61142c00697c4c0053236a7cfe6bf4d71dd63f3dbc09d1764c498ab",
+      "bytes": 38212
+    },
+    "medical/medical_037.txt": {
+      "sha256": "d9c6e0db26e82b3bee543cf62d7a3ce6ea62484c3b8472961a3aa9554363b441",
+      "bytes": 31184
+    },
+    "medical/medical_038.txt": {
+      "sha256": "d86ade3b50473bc2a1cf75f9ebc4700b5838824e7f2afb270b52e6ab52471421",
+      "bytes": 13364
+    },
+    "medical/medical_039.txt": {
+      "sha256": "6e7d472cefa217bda4008ec7fdd4e60107e8eac635681397b111af99f05de4de",
+      "bytes": 11889
+    },
+    "medical/medical_040.txt": {
+      "sha256": "cc58c26bf2441ac4806830fe60940b973718423f0178f4ebdfdcf652f2577efc",
+      "bytes": 23864
+    },
+    "medical/medical_041.txt": {
+      "sha256": "faf3779811224c03458c6132667473bdf149f0c91ff1bb8c37969fca7e89d1ef",
+      "bytes": 18470
+    },
+    "medical/medical_042.txt": {
+      "sha256": "271d32cd9c0f2bc44132635a549271a4c85b380c19cc28ed031c291c3e888ccf",
+      "bytes": 7597
+    },
+    "medical/medical_043.txt": {
+      "sha256": "3a8236874bea9ed7f8f454f43232b724a4d4e93f7d8edf8caeff119cdc9fd3a5",
+      "bytes": 64214
+    },
+    "medical/medical_044.txt": {
+      "sha256": "1e5cf660064410bf582dae21bb8713a21801ca6fa1ed7d5e506cf6d46b7998e9",
+      "bytes": 71043
+    },
+    "agriculture/agriculture_001_beekeeping.txt": {
+      "sha256": "df4a451023a2c673cc101c2d76a8cbaca7889ca9365f0c281d7302386ce32ca5",
+      "bytes": 355200
+    },
+    "agriculture/agriculture_002_making_your_small_farm_profitable.txt": {
+      "sha256": "87f99559a71aa5b8f40895098130baaf7f05676f1ab32da66fc3b8903a148b62",
+      "bytes": 433948
+    },
+    "agriculture/agriculture_003_reclaiming_our_food.txt": {
+      "sha256": "0a51bee67d4e9edc2266d0070346f21e3a40368325fb46940c4eac44e3242acd",
+      "bytes": 1010164
+    },
+    "agriculture/agriculture_004_grass_productivity.txt": {
+      "sha256": "76487bef783857fcb9b2cf6e0dea3a4b3630d98a2283b01f76342896392cdd3b",
+      "bytes": 666768
+    },
+    "agriculture/agriculture_005_the_agrarian_vision.txt": {
+      "sha256": "2697fc70e3e07fd0e61eaa288a878785ff9a8fed7c006ff44fe8ebb7d2577e07",
+      "bytes": 805820
+    },
+    "agriculture/agriculture_006_the_beekeeper_s_lament.txt": {
+      "sha256": "622a43e4a8ad8cf5e2a1e3bd5b714b5da8fdbbee671643a27d5a7a47bdf1f2e4",
+      "bytes": 458502
+    },
+    "agriculture/agriculture_007_market_farming_success.txt": {
+      "sha256": "f6e3df461be0e98e9dffe3ca9ea907fdd48572d89b0b94d2c2b5c751826fbe60",
+      "bytes": 515903
+    },
+    "agriculture/agriculture_008_the_soil_and_health.txt": {
+      "sha256": "db5a14533a4bd54b3f7d3a69398d86fbc7bfa33a954de3bfe39ddf25badf39ff",
+      "bytes": 762519
+    },
+    "agriculture/agriculture_009_natural_beekeeping.txt": {
+      "sha256": "d55db17284da8e78f27a25a54c2a188db8a468b894f8460eaa6d6ded3609474f",
+      "bytes": 906510
+    },
+    "agriculture/agriculture_010_growing_gourmet_and_medicinal_mushrooms.txt": {
+      "sha256": "f132ba63130b7fe55733e24426bbfbbffb02f74ff7a5cae76b91ad16936cbbc9",
+      "bytes": 1493152
+    },
+    "agriculture/agriculture_011_growing_a_revolution.txt": {
+      "sha256": "dbdd416b54528afbe02babdeee9f2d96110a958790aa82f2cca28ddcf64b1304",
+      "bytes": 646936
+    },
+    "agriculture/agriculture_012_folks_this_ain_t_normal.txt": {
+      "sha256": "faac467b922bc0136225644db52a32a8143729ff88b4b7b789f875a6544041c2",
+      "bytes": 827343
+    }
+  }
+}

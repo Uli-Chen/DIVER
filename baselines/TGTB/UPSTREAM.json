@@ -1,0 +1,23 @@
+{
+  "repository": "https://github.com/phycholosogy/RAG-privacy",
+  "revision": "9c29263af262cdf6cb0aa0e38b70702fc493c7df",
+  "archive_sha256": "6fe5352349904dcadb9e274020c9f1d1440ed6a13d26a575b3c672e0edc6814c",
+  "files": {
+    "requirements.txt": "dbbe9fcecfba07ec3d6ea175c48d3bd2dc2d963a5c0b4756f6547abdd46003a6",
+    "environment.yml": "9bc98f68769d2e494638a7123fefd98798ea4ee58554f886c25d3ec7299e1769",
+    "Readme.md": "edccb150d3542775c101ee738e931b6e2b5f5805abc402c4e35137267526ee0a",
+    "generate_prompt.py": "6bc6ec01b7295a954570dca7050752f727de5ea72c6fc974aa842aca21d40ee6",
+    "retrieval_database.py": "432bffab8b10b4900b2dcee1d791e4c347051db84ec9fab5cf88b607b9ac7cf4",
+    "evaluation_results.py": "a766c56b11598f35ef0f9ca6fce82acd8fb19d0838d0b1d21c4612b24da69868",
+    "run_language_model.py": "77c22f8bb34d7e20c492e42d652199253f01cd83deafe3736001fe1442214cdf",
+    "Information/Random_Crawl.json": "c978941282f2f34aa653512d5e56197e3c318e5f9d6dd34cd22314379b545d2c",
+    "Information/Target_URL.json": "f91c02ba5a35320ce375c88cc15c193082b57944e145191918231c3ea746c5ae",
+    "Information/Target_Phone Numer.json": "dad1ea1e28c22499d4722b5f106ea8e0c2b0ce1d76d23b1c6eb96ecf3c067fdb",
+    "Information/Target_Mix.json": "c096fcf930d3f804277554e9b3366d04e56b6aa204b33ab323356c3ccb298d01",
+    "Information/Target_Email Address.json": "68459cd2f938f127cb80e1be707bf9af2c1492edf068f0b6ddfed9aa0bfe08f9",
+    "Information/Target_Disease.json": "b2f825a6968ccf4f832d81a925ee2e38894b2f30ae091ba04cc7fc48f1ba91c1",
+    "Information/Target_From_To.json": "4b8afb5db5b77efd839b7c90c8b3ee01a5cc017480000a1d42c7455e35dac55f",
+    "Information/Random_wikitext.json": "5416b0e626f615381324109826c43b4584f28cb259d3dd22d4344bacfcb015d2",
+    "imgs/intro.png": "caf06b50a7a855f35346ef2f25f39e03404fbec82516fa5a234b2f456de13ad1"
+  }
+}

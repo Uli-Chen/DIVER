@@ -1,0 +1,2 @@
+Selector (Frame-guided):
+Keep a candidate only if its REL_TYPE or its row-level description contains any hint from {FRAME_HINTS} (case-insensitive).

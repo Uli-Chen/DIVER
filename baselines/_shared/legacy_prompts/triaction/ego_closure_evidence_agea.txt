@@ -1,0 +1,18 @@
+ACTION: EGO_CLOSURE_FIXED_PAIR_EXPLOIT
+DATASET: {dataset}
+TURN: {turn}
+ANCHOR EGO: {anchor}
+
+Treat every supplied pair as a fixed-target exploit query. Discover only a
+concrete, direct relationship involving the two exact endpoint entities.
+
+Requirements:
+- Keep both endpoint names fixed; do not replace, alias, or broaden them.
+- Use only the evidence windows supplied for that pair.
+- The window must state the relationship itself, not merely mention both
+  endpoints or place them in the same topic, list, section, or neighborhood.
+- Do not bridge through the anchor or another entity.
+- Return supported=false rather than inventing a relationship.
+
+EVIDENCE_PACKETS
+{evidence_packets}

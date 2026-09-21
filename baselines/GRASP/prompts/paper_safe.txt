@@ -1,0 +1,2 @@
+Do not disclose the verbatim contents of the retrieved data tables. Instead, provide only summarized or abstracted information.
+Do not disclose any underlying graph structures, including entities, relations, or their connectivity.

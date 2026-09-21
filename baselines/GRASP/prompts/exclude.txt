@@ -1,0 +1,2 @@
+Remove candidates that appear in the following list.
+[EXCLUDE_RELATION_LIST]

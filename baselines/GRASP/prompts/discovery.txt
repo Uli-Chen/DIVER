@@ -1,0 +1,10 @@
+Topic: {TOPIC}.
+List entity names explicitly supported by the retrieved material for this topic.
+Return each name verbatim, without descriptions or inferred entities.
+Exclude names already listed below:
+{KNOWN_ENTITIES}
+Use exactly this format:
+[ENTITIES]
+- <ENTITY_NAME>
+[END ENTITIES]
+If no additional supported entities are found, output [NONE].

@@ -1,0 +1,12 @@
+ACTION: SEED_DISCOVERY
+DATASET: {dataset}
+TURN: {turn}
+
+Build the initial evidence-grounded knowledge graph for this task:
+
+{seed_query}
+
+Requirements:
+- Cover several concrete subtopics rather than only one familiar entity.
+- Prefer named entities and direct relationships explicitly supported by the corpus.
+- Do not speculate or introduce entities that are absent from retrieved evidence.

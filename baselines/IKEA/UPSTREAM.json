@@ -1,0 +1,42 @@
+{
+  "repository": "https://github.com/Wangyuhao06/IKEA",
+  "revision": "5631d63e0edf7d0cfd93916c2e71bdbcd0f342b3",
+  "archive_sha256": "c9f0de750c43f80fd3e8310f6ca5a00b160b26f7d5785cd71bf9ab5ce991f1e9",
+  "files": {
+    "dp_feedback_mutation_pipeline.py": "edd40c298fd304aa99f8aa67181df70110a33f92de8273284b86f28714f0a432",
+    "eval_pipeline.py": "c7aed227c9baa1932ddbef6c1778b86e46143aec8fca548157e52481c10d4fd9",
+    "LICENSE": "b30cbe716b9bd93c31e6381af9b92fc7669fab771b46663d9fd82326e524a0dc",
+    "rag_theif_pipeline.py": "bb34ca1224ce3339394e73f5af6ab354ac2c64b26dfdeeb97aa862f7c8fd6e21",
+    "dgea_pipeline.py": "60e4f382997de4e5768b14613035339eceba485007ac279ae29f224519ba5947",
+    "run_ragtheif_auto_gpu.sh": "c78edc35d8687e9ea0dbd7b71da90b0221c3b7b807cf2057c223638a004b1ba0",
+    "README.md": "367df0149daa551cacca859f8f07e4f61e06f6167d57e534cff4af950a1f3e7e",
+    ".gitignore": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "utils.py": "14ca4430b00d35b0cdf09ade7c57f1bfb1e86a9f9a467c37faa13e3f4cc7e4f0",
+    "feedback_mutation_pipeline.py": "488c0973151c579e86c6a05faa3c95f35f1332bc2fe7b620b8d816f422dbf496",
+    "dp_dgea_pipeline.py": "7f93ee17b587466b31fc316c07c780edb9ee53b807909cdff85ba9f930acf721",
+    "dp_rag_theif_pipeline.py": "2b6be161fa77f892cf75d602a4ca64e3724b0a6514a9ab4843697d26ca98cb95",
+    "run_dgea_auto_gpu.sh": "d8a86c249bc63a741233b16d34a20386fb78b7bfe223fc89b28d20129f47e1f5",
+    "src/rag_framework/rag_database.py": "475ab50aa263c58097a2784e245dbe2a49c41181449806072367e48c0d423977",
+    "src/rag_framework/rag_system.py": "f92d55d65912c836980ab98c6cb32bc982b41aa366116b0eaed5c384858637f6",
+    "src/rag_framework/similarity.py": "5d998926652eccb77ba8b9c3879611b40843bc4a12dc09a357ea04403ab1aa0f",
+    "src/rag_framework/__init__.py": "cd5596c80804acce9ace44db78d6c37711ad71cd0599b67bf67f163b971156fa",
+    "src/rag_framework/llm_interface.py": "2c300408a9582c542a0b40ad653bf9ddd4268a7a3e9f26495698577ada9597a5",
+    "src/rag_framework/utils.py": "1a94ea1e6992acd912f7d6a42aaf02c2bd55ac815d843aaf95939c1b1f078431",
+    "src/agent/detector.py": "382027b6cfe61403a82f31ccf5feac4c7aae1c078a928aba6676566e7eee6e67",
+    "src/agent/dgea_attacker.py": "986f50d6c3028556b4c4fc9ba04da03d52cf9658c856f33d8f8fdaba5943be8f",
+    "src/agent/rag_theif_attacker.py": "872cf595921297844a2818ceb00a5d78db42475524eab7193c720958cdcd792b",
+    "src/agent/rag_system.py": "7fcccc8c0b2834b450d3daa9b40e3ef66187217346f2c1e1cf71b5c5ac86cf57",
+    "src/agent/__init__.py": "6c54ae421bbaeb41d58fe20b286beaecfc53972737ba1b3a3b4b818c7186a0a0",
+    "src/agent/eval.py": "b1b02882b9d09ff283c5fed6386633eb123210011aa975211d8b0f65403f4773",
+    "src/agent/attacker.py": "4529a38bf4867333ff4831e0f088b3c12c7b341a859e133b1fd5df806d29df39",
+    "src/agent/mutation_attacker.py": "11ab00aaea130675cfad79d0e35bce41d3035bfac065aa67bce80b1e8d8e857b",
+    "src/performance/eval_tools.py": "8339e58382527d51229e3f929c6544e3f0bafce2b71e59509768b892c24d2c60"
+  },
+  "distribution_patches": [
+    {
+      "file": "src/performance/eval_tools.py",
+      "change": "Replaced a hardcoded API-key example in a comment with YOUR_API_KEY. Attack code is unchanged.",
+      "distributed_sha256": "417dba5cd55d675897ba566027555be8cd6ca898a60c2156416052a58a7a5991"
+    }
+  ]
+}
