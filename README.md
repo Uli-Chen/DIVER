@@ -6,7 +6,7 @@ implementation uses the historical name **BNRR**; DIVER is the paper's method.
 ## Contents
 
 ```text
-src/         REACH controller, runtime and graph-recovery evaluator
+src/         DIVER controller, runtime and graph-recovery evaluator
 baselines/   AGEA, GRASP, TGTB, PIDE and IKEA implementations
 configs/     Attack prompts, indexing configuration and target prompts
 data/        Original text corpora: Novel, Medical and Agriculture
@@ -52,7 +52,7 @@ rmux attach -t index-novel-001
 
 Repeat with dataset-specific session names. Install `rmux` and put it on PATH.
 Outputs default to `result/inputs/{dataset}/`, which is ignored by Git. Set
-`REACH_DATA_ROOT` to another parent directory if needed. Use a fresh directory
+`DIVER_DATA_ROOT` to another parent directory if needed. Use a fresh directory
 for each rebuild; existing indices are never overwritten. An index can also be
 prepared with `--root /path/to/new/index` and launched with the same `--root`.
 
@@ -65,7 +65,7 @@ explicitly disable thinking for the supplied DashScope/DeepSeek providers.
 The indexing concurrency is capped at 8. Rebuilt graphs and fresh API responses
 can differ from historical paper runs; exact saved-result replay is not included.
 
-## Run REACH
+## Run DIVER
 
 After rebuilding all three indices:
 
@@ -73,8 +73,8 @@ After rebuilding all three indices:
 python scripts/preflight.py
 python scripts/run_bnrr.py launch \
   --dataset novel --seeds 42 43 44 --rounds 100 \
-  --root tmp/novel_reproduction_001 --session reach-novel-reproduction-001
-rmux attach -t reach-novel-reproduction-001
+  --root tmp/novel_reproduction_001 --session DIVER-novel-reproduction-001
+rmux attach -t DIVER-novel-reproduction-001
 ```
 
 Use `medical` or `agriculture` for the other datasets, and `--rounds 1000` for
