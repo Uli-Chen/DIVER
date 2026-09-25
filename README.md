@@ -1,7 +1,7 @@
-# REACH
+# DIVER
 
 Reproducibility code for topology-sensitive GraphRAG reconstruction. The
-implementation uses the historical name **BNRR**; REACH is the paper's method.
+implementation uses the historical name **BNRR**; DIVER is the paper's method.
 
 ## Contents
 
