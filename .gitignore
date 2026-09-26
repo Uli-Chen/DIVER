@@ -1,49 +1,18 @@
-# Local credentials, environments and generated files.
+# Credentials and generated environments.
 .env
 .env.*
 !.env.example
-**/provider.env
 *.pem
 .venv/
 __pycache__/
 *.py[cod]
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
+*.egg-info/
 .DS_Store
 .idea/
 .vscode/
-*.egg-info/
 
-# Research workspace material remains local, outside the publication.
-/.local_archive/
-/.aris/
-/AGENTS.md
-/paper/
-/tmp/
-/artifacts/
+# Local indices and experiment output.
 /result/
-/results/
+/tmp/
 /dist/
-/wandb/
-**/wandb/
-/docs/
-/review/
-/refine-logs/
-
-# Publish baseline implementations, not their measurements or runtime state.
-/baselines/rag_extraction
-/baselines/**/runs/
-/baselines/**/runtime/
-/baselines/**/cache/
-/baselines/**/tmp/
-/baselines/**/.rmux
-/baselines/**/.rmux.lock
-/baselines/**/VALIDATION.json
-/baselines/**/upstream/raw_data/
-/baselines/**/upstream/Information/
-/baselines/**/upstream/imgs/
-/baselines/**/upstream/.git/
 *.log
-*.console.log
-

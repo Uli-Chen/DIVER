@@ -1,114 +1,99 @@
 # DIVER
 
-Reproducibility code for topology-sensitive GraphRAG reconstruction. The
-implementation uses the historical name **BNRR**; DIVER is the paper's method.
+Anonymous reproduction package for **DIVER: Knowledge Theft from GraphRAG System via Structural Diversity-Aware Querying**.
 
-## Contents
-
-```text
-src/         DIVER controller, runtime and graph-recovery evaluator
-baselines/   AGEA, GRASP, TGTB, PIDE and IKEA implementations
-configs/     Attack prompts, indexing configuration and target prompts
-data/        Original text corpora: Novel, Medical and Agriculture
-scripts/     Experiment launcher, preflight and release checks
-  setup/     Index builder and optional encoder/embedding tools
-tests/       Offline regression tests
-```
-
-Only original text data is included. Generated graphs, embeddings, experiment
-results, logs, model caches, manuscript drafts and local archives are excluded.
-See [data/README.md](data/README.md) for document counts and checksums.
+DIVER reconstructs a GraphRAG knowledge graph from responses. It combines the Balanced Non-Redundant Ratio (BNRR), neighborhood query exposure, and a budget-dependent rank-admission schedule to select queries. The `bnrr` names in the code refer to this method.
 
 ## Installation
 
-Use Python 3.10 and `uv`:
+Use Python 3.10 and `uv`, from this directory:
 
 ```sh
-uv sync --frozen --extra baselines --extra test
+uv sync --frozen
 source .venv/bin/activate
 cp .env.example .env
 ```
 
-Fill in your chat and embedding provider credentials in `.env`. The baseline
-extra supplies IKEA and GRASP's local sentence encoder. Git LFS is not needed.
+Set the two API keys in `.env`. The six `PROVIDER_*` fields configure the chat and embedding endpoints, credentials, and models. All datasets and the query writer share the same chat provider. Use an OpenAI-compatible endpoint serving the supplied models; the embedding endpoint must return 4,096-dimensional vectors. Thinking is disabled automatically for the supplied DeepSeek model.
 
-## Rebuild the target indices
+## Build the target graphs
 
-For each of `novel`, `medical`, and `agriculture`, prepare and inspect a new
-local index root. These two commands make no model requests:
+The package includes the 76 source documents for Novel (20), Medical (44), and Agriculture (12), their checksums, and the indexing prompts. See [data/README.md](data/README.md) for data provenance. Historical graph indices, embeddings, and experimental results are not included.
 
-```sh
-python scripts/setup/build_index.py prepare --dataset novel
-python scripts/setup/build_index.py check --dataset novel
-```
-
-Then launch indexing in a dedicated `rmux` session (this calls the configured
-chat and embedding APIs):
+Build each index once, then keep it fixed across seeds and query budgets:
 
 ```sh
-python scripts/setup/build_index.py launch --dataset novel --session index-novel-001
-rmux attach -t index-novel-001
+for dataset in novel medical agriculture; do
+  python scripts/setup/build_index.py prepare --dataset "$dataset"
+  python scripts/setup/build_index.py check --dataset "$dataset"
+  python scripts/setup/build_index.py run --dataset "$dataset"
+done
 ```
 
-Repeat with dataset-specific session names. Install `rmux` and put it on PATH.
-Outputs default to `result/inputs/{dataset}/`, which is ignored by Git. Set
-`DIVER_DATA_ROOT` to another parent directory if needed. Use a fresh directory
-for each rebuild; existing indices are never overwritten. An index can also be
-prepared with `--root /path/to/new/index` and launched with the same `--root`.
+`prepare` and `check` make no model requests; `run` calls the chat and embedding APIs. The default index location is `result/inputs/<dataset>/`. A successful build writes `BUILD_STATUS.json` with `"status": "complete"`. Set `DIVER_DATA_ROOT` before both indexing and extraction to use another index parent directory. Use a new index directory for an independent rebuild.
 
-The builder preserves the input/configuration hashes, full build log, request
-ledger and final `BUILD_STATUS.json`. Its session closes after the worker exits
-and diagnostics are saved. Read `BUILD_STATUS.json` before starting attacks.
-Indexing uses GraphRAG 2.7.2, the bundled prompts, 1200-token chunks with 100-token
-overlap, and the configured 4096-dimensional embedding model. Chat requests
-explicitly disable thinking for the supplied DashScope/DeepSeek providers.
-The indexing concurrency is capped at 8. Rebuilt graphs and fresh API responses
-can differ from historical paper runs; exact saved-result replay is not included.
+The indexing configuration uses GraphRAG 2.7.2, DeepSeek-V4-Flash, Qwen3-Embedding-8B with 4,096-dimensional vectors, and 1,200-token chunks with 100-token overlap. Rebuilding invokes external models and can change graph contents and evaluation denominators. This package supports fresh experiments; it cannot guarantee exact reproduction of the paper's saved numerical results.
 
-## Run DIVER
+## Run the experiments
 
-After rebuilding all three indices:
+The main experiment uses seeds 42, 43, and 44 on all three datasets, with **100 scheduled rounds including initialization**:
 
 ```sh
-python scripts/preflight.py
-python scripts/run_bnrr.py launch \
-  --dataset novel --seeds 42 43 44 --rounds 100 \
-  --root tmp/novel_reproduction_001 --session DIVER-novel-reproduction-001
-rmux attach -t DIVER-novel-reproduction-001
+for dataset in novel medical agriculture; do
+  python scripts/run_bnrr.py prepare \
+    --dataset "$dataset" --seeds 42 43 44 --rounds 100 \
+    --root "tmp/main/${dataset}_100r"
+  python scripts/run_bnrr.py run --root "tmp/main/${dataset}_100r"
+done
 ```
 
-Use `medical` or `agriculture` for the other datasets, and `--rounds 1000` for
-a larger query budget. Each launch freezes code/configuration and stores
-responses, graph deltas, metrics and accounting under its new `tmp/` directory.
-The session closes after its workers finish. Resume through the frozen
-workspace entrypoint rather than changed source code.
+Use Linux for the complete GraphRAG workflow. The runner operates in the foreground and reports progress. Seeds run concurrently within each dataset. `prepare` requires a new run directory and records the configuration and input hashes. Keep the source and target indices unchanged while a prepared experiment runs.
 
-Defaults are seeds 42/43/44, 100 scheduled rounds including initialization,
-rank admission 90% to 10%, exposure penalty 0.5, and exploration mixture 0.2.
-Provider failures and skipped rounds remain in the budget. Novel/Agriculture
-use the configured DashScope target; Medical uses the separate DeepSeek
-credentials. All methods must evaluate against the same rebuilt graph.
-The historical Agriculture table selected original seed 43 and rerun1 seeds
-42/44; it is descriptive selected performance, not an unselected three-seed
-validation. New reproductions should retain every attempt.
-
-[Baseline instructions](baselines/README.md) describe each method's entrypoint.
-IKEA and GRASP need the pinned local encoder:
+The paper's 1,000-round experiment uses Novel and seed 42:
 
 ```sh
-python scripts/setup/download_baseline_encoder.py
+python scripts/run_bnrr.py prepare \
+  --dataset novel --seeds 42 --rounds 1000 --root tmp/extended/novel_1000r
+python scripts/run_bnrr.py run --root tmp/extended/novel_1000r
 ```
 
-GRASP's online execution wrapper currently requires macOS `sandbox-exec`.
+Start a fresh trajectory for each budget: the admission schedule depends on the configured horizon, so a 100-round run is not a prefix of the 1,000-round protocol.
 
-## Offline checks
+The supplied configuration follows Sections 3 and Appendices B/D:
+
+| Setting | Value |
+|---|---|
+| Rank admission | Linear from 0.9 to 0.1 over post-initialization rounds; fractional boundary ties |
+| Neighbor exposure increment, alpha | 0.5 |
+| Full-pool anchor-mixture weight, rho | 0.2 |
+| Query writer | DeepSeek-V4-Flash; exploration temperature 0.3, exploitation temperature 0.2; 1,024 output tokens |
+| Victim | DeepSeek-V4-Flash; temperature 0; 16,384 output tokens |
+| Retrieved context | 12,000 tokens |
+| Response processing | Deterministic record parser; thinking disabled; no additional LLM filter |
+
+Failed or skipped scheduled rounds consume the budget. Accepted exploitation queries update exposure using the pre-query neighborhood even when they reveal no new records. The seed fixes controller randomness; external model responses can still vary.
+
+An interrupted extraction worker can resume its last committed round:
 
 ```sh
-pytest tests baselines/_shared/test_baselines.py baselines/GRASP/tests -q
-python scripts/check_release.py --verify-manifest
+python scripts/run_bnrr.py worker --root tmp/main/novel_100r --seed 42 --resume
+python scripts/run_bnrr.py summarize --root tmp/main/novel_100r
 ```
 
-These checks do not launch model experiments. Tests with unpublished historical
-fixtures are skipped. The release check verifies raw-data hashes, upload scope
-and credential patterns. Local `result/`, `tmp/`, `paper/` and `.local_archive/`
-are excluded from publication.
+Use the original source, indices, and configuration. Summarize only after all selected seeds finish. Initialization failures require a new experiment directory.
+
+## Results and evaluation
+
+Each experiment directory contains:
+
+- `RESULTS.json`: final per-seed results and arithmetic means with sample standard deviations.
+- `RESULTS.md`: the aggregate result table.
+- `runs/FULL_seed<seed>/metrics.jsonl`: round-by-round node and directed-edge precision, recall, and F1.
+- `runs/FULL_seed<seed>/final_graph.graphml`: the recovered graph.
+- `EFFICIENCY.json`: recorded token usage, including initialization.
+
+Scores are stored as fractions; multiply by 100 for the paper's percentage scale. Entity matching normalizes case and whitespace and resolves unambiguous abbreviation aliases. Edges are unique ordered endpoint pairs; relation labels do not affect matching. Ground truth comes from the same fixed index being queried and is used only for evaluation.
+
+The result summaries include precision-adjusted recall (PAR): `precision * recall`, calculated separately for each seed before averaging. The evaluator in `src/evaluation/graph_recovery.py` also implements the paper's topology-weighted coverage metrics.
+
+The historical Agriculture table combined original seed 43 with rerun1 seeds 42 and 44. These are selected results, not an unselected three-seed validation. Retain every attempt when reporting new reproductions.

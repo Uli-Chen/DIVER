@@ -6,7 +6,6 @@ Runtime files are local to tmp; no provider credentials are written to manifests
 
 from __future__ import annotations
 
-import argparse
 import csv
 import hashlib
 import json
@@ -18,7 +17,6 @@ import statistics
 import subprocess
 import sys
 import time
-import traceback
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -27,13 +25,30 @@ sys.path.insert(0, str(PROJECT / "src"))
 from extraction.bnrr_config import DEFAULTS
 from extraction import moderation
 from extraction.bnrr_queries import generate_explore_query, generate_exploit_query, QueryGenerationError
-from extraction.bnrr_prompt_profiles import PROFILES, call_query, load_profile, manifest_profile, profile_settings
-from extraction.paths import graph_root
-SOURCE_GRAPH = graph_root("novel_9")
+from extraction.bnrr_prompt_profiles import call_query, load_profile, manifest_profile, profile_settings
+from extraction.paths import graph_root as index_root
 SOURCE_ENV = PROJECT / ".env"
 METHODS = ("FULL",)
 SEEDS = DEFAULTS.seeds
 METRICS = ("node_precision", "node_recall", "edge_pair_precision", "edge_pair_recall", "node_f1", "edge_pair_f1")
+SUMMARY_METRICS = (*METRICS, "node_par", "edge_pair_par")
+
+
+def compute_novelty(cumulative_nodes, cumulative_edges, current_nodes, current_edges):
+    """Preserve the diagnostic novelty statistic used in saved query history."""
+    if not current_nodes and not current_edges:
+        return 0.0
+    node_intersection = len(cumulative_nodes & current_nodes)
+    node_novelty = 1.0 - node_intersection / len(current_nodes) if current_nodes else 0.0
+    seen_edges = set()
+    for source, target in cumulative_edges:
+        seen_edges.add((source.upper(), target.upper()))
+        seen_edges.add((target.upper(), source.upper()))
+    edge_intersection = sum((source.upper(), target.upper()) in seen_edges
+                            for source, target in current_edges)
+    edge_novelty = 1.0 - edge_intersection / len(current_edges) if current_edges else 0.0
+    return (node_novelty * len(current_nodes) + edge_novelty * len(current_edges)) / (
+        len(current_nodes) + len(current_edges))
 
 
 def sha(path):
@@ -56,22 +71,16 @@ def append(path, data):
 def environment():
     from dotenv import load_dotenv
     load_dotenv(SOURCE_ENV, override=True)
-    for key in ("AGEA_API_KEY", "GRAPHRAG_API_KEY", "GRAPHRAG_EMBEDDING_API_KEY"):
-        if not os.getenv(key):
-            raise RuntimeError(f"Missing {key}")
-    expected = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    for name in ("AGEA_API_BASE", "GRAPHRAG_API_BASE"):
-        if os.getenv(name, "").rstrip("/") != expected:
-            raise RuntimeError(f"Unexpected provider for {name}")
-    if os.getenv("GRAPHRAG_EMBEDDING_API_BASE", "").rstrip("/") != "https://api.siliconflow.cn/v1":
-        raise RuntimeError("Original index requires SiliconFlow embedding provider")
-    if os.getenv("GRAPHRAG_EMBEDDING_MODEL") != "Qwen/Qwen3-Embedding-8B":
-        raise RuntimeError("Original index requires Qwen/Qwen3-Embedding-8B")
-    for name in ("AGEA_CHAT_MODEL", "GRAPHRAG_CHAT_MODEL", "QUERY_GENERATOR", "GRAPHRAG_EMBEDDING_MODEL"):
-        if not os.getenv(name):
-            raise RuntimeError(f"Missing {name}")
-    if os.environ.get("AGEA_THINKING_CONTROL_STYLE") != "enable_thinking":
-        raise RuntimeError("DashScope no-thinking configuration is required")
+    from urllib.parse import urlsplit
+    required = ("PROVIDER_API_KEY", "PROVIDER_API_BASE", "PROVIDER_CHAT_MODEL",
+                "PROVIDER_EMBEDDING_API_KEY", "PROVIDER_EMBEDDING_API_BASE", "PROVIDER_EMBEDDING_MODEL")
+    for name in required:
+        if not os.getenv(name, "").strip() or os.environ[name] == "replace-me":
+            raise RuntimeError(f"Set {name} in .env")
+    for name in ("PROVIDER_API_BASE", "PROVIDER_EMBEDDING_API_BASE"):
+        endpoint = urlsplit(os.environ[name])
+        if endpoint.scheme not in {"http", "https"} or not endpoint.hostname:
+            raise RuntimeError(f"Invalid API endpoint: {name}")
     os.environ.update({"PYTHONPATH": str(PROJECT / "src"),
         "PYTHONUNBUFFERED": "1", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONHASHSEED": "0"})
 
@@ -172,13 +181,13 @@ def worker(root, method, seed, seed_only=False, resume=False):
     if resume and (method != "FULL" or seed_only):
         raise ValueError("Resume supports the FULL worker, not seed generation")
     if method != "FULL":
-        raise ValueError("The BNRR runtime supports FULL only; use the explicit baseline runner for comparisons")
+        raise ValueError("The DIVER runtime supports FULL only")
     environment()
     manifest = check_manifest(root)
-    if manifest.get("embedding_model") and manifest["embedding_model"] != os.environ.get("GRAPHRAG_EMBEDDING_MODEL"):
+    if manifest.get("embedding_model") and manifest["embedding_model"] != os.environ.get("PROVIDER_EMBEDDING_MODEL"):
         raise RuntimeError("Embedding environment changed since manifest was frozen")
     if resume:
-        for key in ("AGEA_CHAT_MODEL", "GRAPHRAG_CHAT_MODEL", "QUERY_GENERATOR"):
+        for key in ("PROVIDER_CHAT_MODEL",):
             if manifest.get("chat_model") and os.environ.get(key) != manifest["chat_model"]:
                 raise RuntimeError(f"Chat model changed on resume: {key}")
     import networkx as nx
@@ -207,8 +216,8 @@ def worker(root, method, seed, seed_only=False, resume=False):
     if resume:
         restore_accounting(requests)
     requests.install()
-    _RUNNER.get_openai_client = lambda *args, **kwargs: OpenAI(api_key=os.environ["AGEA_API_KEY"],
-        base_url=os.environ["AGEA_API_BASE"], max_retries=2, timeout=120)
+    _RUNNER.get_openai_client = lambda *args, **kwargs: OpenAI(api_key=os.environ["PROVIDER_API_KEY"],
+        base_url=os.environ["PROVIDER_API_BASE"], max_retries=2, timeout=120)
     graph = nx.MultiDiGraph()
     truth = TruthData.load(root / "graph_root" / "output")
     controller = make_controller(manifest, seed)
@@ -256,7 +265,7 @@ def worker(root, method, seed, seed_only=False, resume=False):
             mode, anchor = decision["mode"], decision["anchor"]
             explore_query = exploit_query = None
             if turn > 1:
-                model = _RUNNER.resolve_agent_model("QUERY_GENERATOR", "deepseek-v4-flash")
+                model = _RUNNER.resolve_agent_model("PROVIDER_CHAT_MODEL", "deepseek-v4-flash")
                 writer = generate_explore_query if mode == "explore" else generate_exploit_query
                 if moderation_enabled:
                     from extraction.bnrr_queries import exploration_messages, exploitation_messages
@@ -362,7 +371,7 @@ def worker(root, method, seed, seed_only=False, resume=False):
                 controller.complete(anchor)
             elif mode == "exploit" and skipped:
                 controller.skip(anchor)
-            novelty = 0.0 if turn == 1 else _RUNNER.compute_novelty(before_nodes, before_edges,
+            novelty = 0.0 if turn == 1 else compute_novelty(before_nodes, before_edges,
                 set(result.batch.nodes), {atom.pair for atom in result.batch.edges})
             h = {"turn": turn, "mode": mode, "type": mode, "query": query, "novelty": novelty,
                 "nodes_added_to_graph": len(set(graph.nodes) - before_nodes), "edges_added_to_graph": len(set(graph.edges()) - before_edges),
@@ -443,29 +452,20 @@ def worker(root, method, seed, seed_only=False, resume=False):
         if journal: journal.close()
 
 
-def prepare(root, *, dataset="novel", horizon=DEFAULTS.rounds, methods=("FULL",), reuse_seeds=None, gate_policy=DEFAULTS.gate_policy, prompt_profile=DEFAULTS.prompt_profile, soft_bnrr=True):
+def prepare(root, *, dataset="novel", horizon=DEFAULTS.rounds, methods=("FULL",), gate_policy=DEFAULTS.gate_policy, prompt_profile=DEFAULTS.prompt_profile, soft_bnrr=True):
     environment()
     import yaml
-    if dataset not in {"novel_9", "novel", "medical", "agriculture"} or horizon < 2 or not methods or any(m not in METHODS for m in methods):
+    if dataset not in {"novel", "medical", "agriculture"} or horizon < 2 or not methods or any(m not in METHODS for m in methods):
         raise ValueError("Invalid experiment configuration")
     prompt_config = profile_settings(prompt_profile)
     from extraction.separated_query import PROTOCOL as retrieval_protocol
-    if reuse_seeds:
-        prior_manifest = json.loads((Path(reuse_seeds) / "manifest.json").read_text())
-        if prior_manifest.get("seed_retrieval_protocol") != retrieval_protocol:
-            raise ValueError("Cannot reuse legacy combined-query seeds in a pure-retrieval experiment")
     library = load_profile(PROJECT, prompt_profile)
-    source_graph = SOURCE_GRAPH if dataset == "novel_9" else SOURCE_GRAPH.parent / dataset
+    source_graph = index_root(dataset)
     from extraction.control.bnrr import BnrrController
     BnrrController(horizon, gate_policy=gate_policy)
     if not soft_bnrr or gate_policy != "residual_mass" or tuple(methods) != ("FULL",):
         raise ValueError("Soft BNRR requires residual_mass and FULL-only runs")
-    # The old Novel root has a dangling settings symlink after branch cleanup.
-    # Novel9's original settings were verified byte-identical to the preserved
-    # Novel configuration; use that shared template, but Novel's own data/prompts.
     settings_source = source_graph / "settings.yaml"
-    if dataset == "novel" and not settings_source.is_file():
-        settings_source = SOURCE_GRAPH / "settings.yaml"
     import lancedb
     table = lancedb.connect(str(source_graph / "output/lancedb")).open_table("default-entity-description")
     if table.schema.field("vector").type.list_size != 4096:
@@ -477,43 +477,27 @@ def prepare(root, *, dataset="novel", horizon=DEFAULTS.rounds, methods=("FULL",)
     for model in settings["models"].values():
         model["max_retries"] = 2
         model["request_timeout"] = 120
-    settings["models"]["default_chat_model"]["model"] = "${GRAPHRAG_CHAT_MODEL}"
-    # Explicitly match the validated Novel9 protocol; older Medical settings
-    # omit this field and would otherwise inherit a different SDK default.
+    settings["models"]["default_chat_model"]["model"] = "${PROVIDER_CHAT_MODEL}"
+    # Freeze completion settings explicitly instead of inheriting SDK defaults.
     settings["models"]["default_chat_model"].update(max_tokens=16384, temperature=0, top_p=1,
         type="openai_chat", encoding_model="cl100k_base")
     settings["vector_store"]["default_vector_store"]["db_uri"] = str((source_graph / "output/lancedb").resolve())
     (graph_root / "settings.yaml").write_text(yaml.safe_dump(settings, sort_keys=False))
     shutil.copytree(source_graph / "prompts", graph_root / "prompts")
     (graph_root / "output").symlink_to((source_graph / "output").resolve(), target_is_directory=True)
-    sources = [p for base in ("src", "baselines/AGEA", "configs/prompts", "scripts") for p in (PROJECT / base).rglob("*")
+    sources = [p for base in ("src", "configs/prompts", "scripts") for p in (PROJECT / base).rglob("*")
         if p.is_file() and p.suffix in {".py", ".txt"}]
     runtime = [settings_source, graph_root / "settings.yaml", *sorted((graph_root / "prompts").glob("*")), *sorted((source_graph / "output").glob("*.parquet")),
         *sorted(p for p in (source_graph / "output/lancedb").rglob("*") if p.is_file())]
-    if reuse_seeds:
-        if dataset != "novel_9":
-            raise ValueError("Cannot reuse Novel9 seeds on another dataset")
-        for seed in SEEDS:
-            source = Path(reuse_seeds) / "seed_generation" / f"seed{seed}"
-            target = root / "seed_generation" / f"seed{seed}"
-            target.mkdir(parents=True)
-            shutil.copyfile(source / "response.txt", target / "response.txt")
-            shutil.copyfile(source / "retrieval_query.txt", target / "retrieval_query.txt")
-            from extraction.bnrr_parser import extraction_finish_reasons
-            write_json(target / "extraction_completion.json", {
-                "finish_reasons": extraction_finish_reasons(source / "requests.jsonl", 1)})
-            initial = json.loads((source / "history.jsonl").read_text().splitlines()[0])
-            (target / "query.txt").write_text(initial["query"])
-            runtime.extend([target / "response.txt", target / "query.txt", target / "retrieval_query.txt", target / "extraction_completion.json"])
     write_json(root / "manifest.json", {"dataset": dataset, "horizon": horizon, "seeds": SEEDS, "methods": methods,
         **({"coverage_protocol": "bnrr-soft-self-onehop", "neighbor_penalty": .5} if soft_bnrr else {}),
-        "reused_seed_source": str(reuse_seeds) if reuse_seeds else None,
+        "reused_seed_source": None,
         "settings_source": str(settings_source),
         "max_workers": len(SEEDS), "created": time.time(), "q_hi": DEFAULTS.q_hi, "q_lo": DEFAULTS.q_lo, "rho": DEFAULTS.rho,
         "formal_defaults": DEFAULTS.to_dict(), "rank_schedule": DEFAULTS.rank_schedule,
         "moderation_policy": DEFAULTS.moderation_policy, "moderation_attempts": DEFAULTS.moderation_attempts,
         "gate": {"epsilon": .3, "decay": .98, "min": .05, "threshold": .15, "window": 5, "adaptive": True, "success_rate_detection": True},
-        "chat_model": "deepseek-v4-flash", "chat_api_base": os.environ["AGEA_API_BASE"], "thinking": False,
+        "chat_model": os.environ["PROVIDER_CHAT_MODEL"], "chat_api_base": os.environ["PROVIDER_API_BASE"], "thinking": False,
         "extra_llm_filter": False, "adapter_query_retries": 2, "sdk_retries": 2, "http_timeout": 120,
         "prompt_protocol": "bnrr-pure-retrieval-null",
         "retrieval_by_method": {m: retrieval_protocol for m in methods},
@@ -531,8 +515,8 @@ def prepare(root, *, dataset="novel", horizon=DEFAULTS.rounds, methods=("FULL",)
         "bnrr_parser_protocol": "bnrr-null-record-local",
         "extraction_completion_policy": "skip-length-and-unparseable-v1",
         "round_failure_policy": "record-local-skip; skipped rounds consume budget but do not complete anchors",
-        "embedding_model": os.environ["GRAPHRAG_EMBEDDING_MODEL"],
-        "embedding_api_base": os.environ["GRAPHRAG_EMBEDDING_API_BASE"],
+        "embedding_model": os.environ["PROVIDER_EMBEDDING_MODEL"],
+        "embedding_api_base": os.environ["PROVIDER_EMBEDDING_API_BASE"],
         "embedding_dimensions": 4096,
         "query_writer": {"methods": ["FULL"], "action": "all_postseed",
             "explore_temperature": 0.3, "exploit_temperature": 0.2, "max_tokens": 1024, "recent_queries": 3,
@@ -546,7 +530,7 @@ def prepare(root, *, dataset="novel", horizon=DEFAULTS.rounds, methods=("FULL",)
                 if prompt_config["memory_profile"] == "recent_exclusion_desc" else None),
             "uses_observed_gain_counts": False,
             "uses_novelty_or_topology": False, "uses_truth_or_retrieval_tables": False},
-        "evaluation": f"directed endpoint pairs; offline truth; J_E mean F1 over rounds 2..{horizon}", "wandb": False,
+        "evaluation": f"directed endpoint pairs; offline truth; J_E mean F1 over rounds 2..{horizon}",
         "code_hashes": {str(p.relative_to(PROJECT)): sha(p) for p in sources},
         "runtime_hashes": {os.path.relpath(p, root): sha(p) for p in runtime}})
     print(json.dumps({"root": str(root), "prepared": True, "api_requests": 0}))
@@ -750,20 +734,28 @@ def summarize(root):
             if status["status"] != "completed" or status["round"] != manifest["horizon"]:
                 raise RuntimeError("Incomplete run, refusing terminal comparison")
             audits.append(audit_run(root, method, seed))
-            rows.append(json.loads((out / "summary.json").read_text()))
-        result[method] = {"seeds": rows, "mean": {k: statistics.mean(r["final"][k] for r in rows) for k in METRICS},
-            "std": {k: statistics.stdev(r["final"][k] for r in rows) if len(rows) > 1 else None for k in METRICS},
-            "J_E_mean": statistics.mean(r["J_E"] for r in rows)}
+            summary = json.loads((out / "summary.json").read_text())
+            final = summary["final"]
+            # The paper defines PAR = precision * recall in [0, 1]. Compute
+            # each seed's value before aggregation, preserving covariance.
+            final["node_par"] = final["node_precision"] * final["node_recall"]
+            final["edge_pair_par"] = final["edge_pair_precision"] * final["edge_pair_recall"]
+            rows.append(summary)
+        result[method] = {"seeds": rows, "mean": {k: statistics.mean(r["final"][k] for r in rows) for k in SUMMARY_METRICS},
+            "std": {k: statistics.stdev(r["final"][k] for r in rows) if len(rows) > 1 else None for k in SUMMARY_METRICS},
+            "J_E_mean": statistics.mean(r["J_E"] for r in rows),
+            "J_E_std": statistics.stdev(r["J_E"] for r in rows) if len(rows) > 1 else None}
     write_json(root / "RESULTS.json", result)
     write_json(root / "AUDIT.json", {"status": "passed", "runs": audits})
     description = (f"All entries are {len(manifest['seeds'])}-seed arithmetic means ± sample SD."
         if len(manifest["seeds"]) > 1 else "Single-seed results; sample SD is undefined and stored as null.")
-    text = f"# {manifest['dataset']} {manifest['horizon']}-round BNRR-centric experiment\n\n{description}\n\n| Method | Node P | Node R | Edge P | Edge R | Edge F1 | J_E |\n|---|---:|---:|---:|---:|---:|---:|\n"
+    text = f"# DIVER: {manifest['dataset']}, {manifest['horizon']} rounds\n\n{description} Metrics use the 0–1 scale; PAR = P × R.\n\n| Method | Node P | Node R | Edge P | Edge R | Node F1 | Edge F1 | Node PAR | Edge PAR | J_E |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n"
     for method, row in result.items():
         values = [(f"{row['mean'][k]:.4f} ± {row['std'][k]:.4f}" if row["std"][k] is not None else f"{row['mean'][k]:.4f}")
-                  for k in METRICS if k != "node_f1"]
-        text += "| " + " | ".join([method, *values, f"{row['J_E_mean']:.4f}"]) + " |\n"
-    text += "\nBNRR uses AGEA-adapted null prompts and soft exposure. No filtering or thinking. See manifest for the exact contract.\n"
+                  for k in SUMMARY_METRICS]
+        trajectory = f"{row['J_E_mean']:.4f} ± {row['J_E_std']:.4f}" if row["J_E_std"] is not None else f"{row['J_E_mean']:.4f}"
+        text += "| " + " | ".join([method, *values, trajectory]) + " |\n"
+    text += "\nDIVER uses null-aware extraction and soft exposure. See manifest.json for the exact experiment configuration.\n"
     (root / "RESULTS.md").write_text(text)
 
 

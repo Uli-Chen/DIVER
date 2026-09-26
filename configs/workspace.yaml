@@ -1,9 +1,0 @@
-# Workspace paths only, NOT a runnable experiment configuration.
-experiment_output: tmp
-datasets:
-  medical: result/inputs/medical/output
-  novel: result/inputs/novel/output
-  agriculture: result/inputs/agriculture/output
-# Rebuild these local indices from data/ before running experiments.
-embedding_model: Qwen/Qwen3-Embedding-8B
-embedding_dimensions: 4096

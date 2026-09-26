@@ -1,5 +1,0 @@
-ACTION: EGO_CLOSURE
-DATASET: {dataset}
-TURN: {turn}
-
-What direct relationships exist between "{entity_a}" and "{entity_b}"?

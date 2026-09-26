@@ -1,4 +1,4 @@
-"""Ground-truth metrics for the medical GraphRAG extraction experiment."""
+"""Ground-truth graph recovery metrics for DIVER."""
 
 from __future__ import annotations
 
@@ -65,8 +65,7 @@ class TruthData:
 
     @property
     def degree_weights(self) -> dict[str, float]:
-        # Degree baselines follow the proposal's simple undirected projection,
-        # rather than counting reciprocal directed truth edges twice.
+        # Count degree on the simple undirected projection.
         return {node: float(score.degree) for node, score in self.node_scores.items()}
 
     @property

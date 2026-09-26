@@ -1,7 +1,7 @@
 [project]
-name = "mematk"
+name = "diver"
 version = "0.1.0"
-description = "Topology-sensitive graph extraction and evaluation"
+description = "DIVER anonymous reproduction package"
 requires-python = ">=3.10,<3.11"
 dependencies = [
     "graphrag==2.7.2",
@@ -13,22 +13,10 @@ dependencies = [
     "numpy==1.26.4",
     "lancedb==0.36.0",
     "pyarrow==25.0.0",
-    "wandb>=0.29,<0.30",
 ]
-
-[project.optional-dependencies]
-baselines = [
-    "torch==2.5.1",
-    "sentence-transformers==3.4.1",
-    "transformers==4.49.0",
-    "huggingface-hub==0.36.2",
-]
-test = ["pytest==8.3.5"]
 
 [project.scripts]
-bnrr = "extraction.cli:main"
-mematk-extract = "extraction.cli:main"
-mematk-baseline = "extraction.baseline_cli:main"
+diver = "extraction.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -39,6 +27,3 @@ packages = ["src/extraction", "src/evaluation"]
 
 [tool.uv]
 package = true
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]

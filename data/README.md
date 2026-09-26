@@ -1,4 +1,4 @@
-# Original benchmark text
+# Benchmark corpora
 
 | Dataset | Documents | UTF-8 bytes |
 |---|---:|---:|
@@ -7,19 +7,16 @@
 | Agriculture | 12 | 8,882,765 |
 | Total | 76 | 14,772,383 |
 
-These are the original text inputs used to construct this benchmark's GraphRAG
-indices. Each file's decoded text was checked against the corresponding original
-`documents.parquet` record before publication. Original filenames and raw bytes
-are retained. `FILES_SHA256.json` records SHA-256 and byte length for every file.
-The question-answer sets are not used by the extraction benchmark and are not
-included. No generated indices, embeddings or experiment results are included.
+These are the source texts used to construct the GraphRAG targets. Original
+filenames and bytes are retained; `FILES_SHA256.json` records each file's SHA-256
+and byte length. The index preparation command verifies these checksums.
 
-Agriculture was obtained from the DIGIMON dataset distributed by
+Agriculture comes from the DIGIMON dataset distributed by
 [JayLZhou/GraphRAG](https://github.com/JayLZhou/GraphRAG), archive `datasets.tar.gz`
 (SHA-256 `1f49235d5a34022de292abc437c43280d557573c77ef244d859fd536a059b4a6`),
-member `datasets/agriculture/Corpus.json`. The corpus contains 12 documents;
-`Reclaiming Our Food` is record 3. Novel and Medical retain the existing
-benchmark corpus text used by the original indexed documents.
+member `datasets/agriculture/Corpus.json`. Novel and Medical retain the benchmark
+texts corresponding to the original indexed documents. Source-text author names
+and third-party attribution are part of the datasets.
 
-Rebuild local graphs and vectors with `scripts/setup/build_index.py`, following
-the root README. The same rebuilt indices must be shared across all methods.
+Follow the root README to rebuild the indices. Generated graphs, embeddings,
+and historical experimental results are not included.

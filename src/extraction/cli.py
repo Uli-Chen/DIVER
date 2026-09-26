@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
-"""Frozen domain experiments with AGEA-adapted null prompts and soft BNRR."""
+"""Prepare, run, resume, and evaluate DIVER experiments."""
 from __future__ import annotations
 
 import argparse
 import json
 import os
 from pathlib import Path
-import shlex
-import shutil
 import subprocess
 import sys
-import tarfile
 import time
 import traceback
 
@@ -23,21 +20,6 @@ PROFILE = DEFAULTS.prompt_profile
 SEEDS = DEFAULTS.seeds
 DATASETS = ("novel", "agriculture", "medical")
 base_check = metered.check_manifest
-default_environment = metered.environment
-default_worker_environment = metered.pilot.environment
-
-
-def select_environment(dataset):
-    """Keep Medical credentials and native thinking controls process-local."""
-    if dataset == "medical":
-        from extraction import medical_provider as medical
-        metered.environment = medical.environment
-        metered.pilot.environment = medical.environment
-    else:
-        metered.environment = default_environment
-        metered.pilot.environment = default_worker_environment
-    metered.pilot.__file__ = str(ENTRY)
-
 
 def validate_seeds(seeds):
     if not isinstance(seeds, (list, tuple)) or len(seeds) not in (1, 2, 3) or len(set(seeds)) != len(seeds) or any(s not in SEEDS for s in seeds):
@@ -73,9 +55,6 @@ def check(root):
         "extraction_max_tokens": 16384, "thinking": False, "extra_llm_filter": False}
     if manifest.get("dataset") not in DATASETS or root.name != f"{manifest['dataset']}_{rounds}r":
         raise RuntimeError("Stage name must match the supported dataset and frozen round budget")
-    if manifest["dataset"] == "medical":
-        expected.update(chat_api_base="https://api.deepseek.com", chat_model="deepseek-v4-flash",
-            provider_profile="medical-deepseek-native-v1", thinking_control={"thinking": {"type": "disabled"}})
     for key, value in expected.items():
         if manifest.get(key) != value:
             raise RuntimeError("Formal protocol mismatch: " + key)
@@ -119,12 +98,7 @@ def prepare(root, dataset, seeds=SEEDS, rounds=DEFAULTS.rounds):
     manifest = read(root / "manifest.json")
     manifest.update(seeds=seeds, max_workers=len(seeds), extraction_max_tokens=16384, runner_entrypoint="scripts/" + ENTRY.name,
         null_contract="literal-null-v1", initialization_counts_as_round=1,
-        prompt_revision="agea-adapted-null",
-        session_policy="one rmux session per dataset; close after all workers and terminal audit")
-    if dataset == "medical":
-        manifest.update(provider_profile="medical-deepseek-native-v1",
-            thinking_control={"thinking": {"type": "disabled"}},
-            credential_names=["tmp_medical_api_key", "tmp_medical_api_base", "tmp_medical_chat_model"])
+        prompt_revision="agea-adapted-null")
     write(root / "manifest.json", manifest)
     _, rendered = check(root)
     write(root / "PROMPT_PREFLIGHT.json", {"status": "passed", "rendered_generation_queries": rendered,
@@ -148,7 +122,7 @@ def availability(cohort, reuse_response=False):
     if reuse_response:
         restore_accounting(audit)
     audit.install()
-    model = os.environ["GRAPHRAG_CHAT_MODEL"]
+    model = os.environ["PROVIDER_CHAT_MODEL"]
     prompt = ("Evidence: ENTITY ALPHA has no supplied description. ENTITY BETA has no supplied description. "
         "A directed relationship ALPHA to BETA is supplied, with no relationship description.\n\n" +
         load_profile(PROJECT, PROFILE).templates["output_contract"])
@@ -157,13 +131,13 @@ def availability(cohort, reuse_response=False):
         saved = [json.loads(line) for line in audit.path.read_text().splitlines()]
         if ((out / "prompt.txt").read_text() != prompt or not saved or any(r["kind"] != "chat" for r in saved)
                 or saved[-1]["status"] != 200 or saved[-1]["model"] != model
-                or saved[-1]["host"] != urlsplit(os.environ["AGEA_API_BASE"]).hostname
+                or saved[-1]["host"] != urlsplit(os.environ["PROVIDER_API_BASE"]).hostname
                 or saved[-1]["finish_reasons"] != ["stop"]):
             raise RuntimeError("Saved probe response does not match this incomplete availability check")
         response = (out / "response.txt").read_text()
         finish_reason = "stop"
     else:
-        with OpenAI(api_key=os.environ["AGEA_API_KEY"], base_url=os.environ["AGEA_API_BASE"], max_retries=2, timeout=60) as client:
+        with OpenAI(api_key=os.environ["PROVIDER_API_KEY"], base_url=os.environ["PROVIDER_API_BASE"], max_retries=2, timeout=60) as client:
             reply = client.chat.completions.create(model=model, messages=[{"role": "user", "content": prompt}],
                 max_tokens=1024, temperature=0, **_RUNNER.agent_completion_options(model))
         choice = reply.choices[0]
@@ -180,8 +154,8 @@ def availability(cohort, reuse_response=False):
             any(n["description"] is not None for n in nodes) or edges[0]["description"] is not None or
             len(description_values) < 3 or any(value != "null" for value in description_values) or finish_reason != "stop"):
         raise RuntimeError("Live model null-format probe failed; inspect saved response")
-    with OpenAI(api_key=os.environ["GRAPHRAG_EMBEDDING_API_KEY"], base_url=os.environ["GRAPHRAG_EMBEDDING_API_BASE"], max_retries=2, timeout=60) as client:
-        reply = client.embeddings.create(model=os.environ["GRAPHRAG_EMBEDDING_MODEL"], input="Availability check", encoding_format="float")
+    with OpenAI(api_key=os.environ["PROVIDER_EMBEDDING_API_KEY"], base_url=os.environ["PROVIDER_EMBEDDING_API_BASE"], max_retries=2, timeout=60) as client:
+        reply = client.embeddings.create(model=os.environ["PROVIDER_EMBEDDING_MODEL"], input="Availability check", encoding_format="float")
     dimension = len(reply.data[0].embedding)
     if dimension != 4096:
         raise RuntimeError("Embedding dimension mismatch")
@@ -189,7 +163,7 @@ def availability(cohort, reuse_response=False):
     if any(r["kind"] == "chat" and (not r["thinking_disabled"] or r["reasoning_content_nonempty"]) for r in rows):
         raise RuntimeError("Availability probe violated no-thinking contract")
     write(out / "RESULT.json", {"status": "passed", "chat_model": model,
-        "chat_api_base": os.environ["AGEA_API_BASE"], "thinking_disabled": True, "embedding_dimensions": dimension,
+        "chat_api_base": os.environ["PROVIDER_API_BASE"], "thinking_disabled": True, "embedding_dimensions": dimension,
         "parse_stats": stats, "costs": cost_summary(rows), "scope": "synthetic availability probes; excluded from experiment metrics"})
     print("Live availability passed: null format, chat endpoint, 4096-dimensional embedding", flush=True)
 
@@ -208,16 +182,17 @@ def progress(root):
     return result
 
 
-def run_session(root, session):
+def run(root):
+    """Run one prepared experiment in the foreground."""
     manifest, _ = check(root)
+    if (root / "LAUNCH.json").exists() or (root / "runs").exists():
+        raise RuntimeError("This stage has already started; resume an interrupted worker with worker --resume")
     log = root / "supervisor.log"
-    print(f"{manifest['dataset']} | seeds {manifest['seeds']} | {manifest['horizon']} rounds | AGEA-adapted null + BNRR parser + soft BNRR", flush=True)
-    print(f"Logs/results: {root}\nAttach: rmux attach -t {session}", flush=True)
+    print(f"DIVER | {manifest['dataset']} | seeds {manifest['seeds']} | {manifest['horizon']} rounds", flush=True)
+    print(f"Logs/results: {root}", flush=True)
     with log.open("ab", buffering=0) as handle:
         process = subprocess.Popen([sys.executable, "-u", str(ENTRY), "supervise", "--root", str(root)],
             cwd=PROJECT, stdout=handle, stderr=subprocess.STDOUT)
-        write(root / "SESSION.json", {"session": session, "supervisor_pid": process.pid,
-            "session_process_pid": os.getpid(), "started": time.time(), "status": "running"})
         while process.poll() is None:
             current = progress(root)
             write(root / "PROGRESS.json", {"updated": time.time(), "seeds": current})
@@ -228,87 +203,36 @@ def run_session(root, session):
                 pass
     code = process.returncode
     terminal = {"status": "completed" if code == 0 else "failed", "exit_code": code,
-        "finished": time.time(), "seeds": progress(root), "session": session,
+        "finished": time.time(), "seeds": progress(root),
         "results": str(root / "RESULTS.md"), "diagnostics": str(log)}
     write(root / "TERMINAL.json", terminal)
-    write(root / "SESSION.json", terminal)
     print(json.dumps(terminal), flush=True)
-    # The supervisor waits for every active worker before returning. Terminal
-    # results and logs are durable before this session (including tails) closes.
-    closed = subprocess.run(["rmux", "kill-session", "-t", session], capture_output=True, text=True)
-    if closed.returncode:
-        write(root / "SESSION_CLOSE_ERROR.json", {"stderr": closed.stderr, "returncode": closed.returncode})
     return code
-
-
-def dispatch(root, session):
-    manifest, _ = check(root)
-    if not isinstance(session, str) or not session.strip():
-        raise ValueError("A descriptive rmux session name is required")
-    if (root / "SESSION.json").exists() or (root / "runs").exists():
-        raise RuntimeError("Refusing duplicate experiment launch")
-    subprocess.run(["rmux", "-V"], check=True)
-    from extraction.paths import data_root
-    os.environ['REACH_DATA_ROOT'] = str(data_root())
-    command = shlex.join([sys.executable, "-u", str(ENTRY), "session", "--root", str(root), "--session", session])
-    subprocess.run(["rmux", "new-session", "-d", "-s", session, "-n", "progress", "-c", str(PROJECT), "-x", "140", "-y", "35", command], check=True)
-    for seed in manifest["seeds"]:
-        command = shlex.join(["tail", "-n", "15", "-F", str(root / "logs" / f"seed{seed}.log"), str(root / "logs" / f"FULL_seed{seed}.log")])
-        subprocess.run(["rmux", "new-window", "-d", "-t", session, "-n", f"seed{seed}", command], check=True)
-    print(json.dumps({"dataset": root.name, "session": session, "attach": "rmux attach -t " + session}), flush=True)
-
-
-def launch(cohort, dataset, seeds=SEEDS, session=None, rounds=DEFAULTS.rounds):
-    """Freeze an isolated checkout before preparing and dispatching new work."""
-    seeds = validate_seeds(seeds)
-    rounds = validate_rounds(rounds)
-    if dataset not in DATASETS or not cohort.is_relative_to(PROJECT / "tmp"):
-        raise ValueError("Choose a supported dataset and a new cohort under this project's tmp/")
-    subprocess.run(["rmux", "-V"], check=True)
-    cohort.mkdir(parents=True, exist_ok=False)
-    workspace = cohort / "workspace"
-    for folder in ("src", "scripts", "configs", "baselines/AGEA"):
-        shutil.copytree(PROJECT / folder, workspace / folder,
-            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-    for name in ("pyproject.toml", "uv.lock"):
-        shutil.copy2(PROJECT / name, workspace / name)
-    (workspace / ".env").symlink_to((PROJECT / ".env").resolve())
-    entry = workspace / "scripts/run_bnrr.py"
-    stage = cohort / f"{dataset}_{rounds}r"
-    subprocess.run([sys.executable, str(entry), "prepare", "--root", str(stage),
-        "--dataset", dataset, "--rounds", str(rounds), "--seeds", *map(str, seeds)], cwd=workspace, check=True)
-    with tarfile.open(cohort / "source_snapshot.tar.gz", "w:gz") as archive:
-        for folder in ("src", "scripts", "configs", "baselines/AGEA", "pyproject.toml", "uv.lock"):
-            archive.add(workspace / folder, arcname=folder)
-    session = session or f"bnrr-{dataset}-{cohort.name}"
-    write(cohort / "COHORT.json", {"dataset": dataset, "seeds": seeds, "rounds": rounds,
-        "workspace": str(workspace), "stage": str(stage), "session": session,
-        "source_snapshot": "source_snapshot.tar.gz", "status": "prepared"})
-    subprocess.run([sys.executable, str(entry), "dispatch", "--root", str(stage),
-        "--session", session], cwd=workspace, check=True)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("launch", "prepare", "check", "availability", "dispatch", "session", "supervise", "seed", "worker", "summarize"))
+    parser.add_argument("action", choices=("prepare", "check", "run", "availability", "supervise", "seed", "worker", "summarize"))
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--dataset", choices=DATASETS)
-    parser.add_argument("--session")
     parser.add_argument("--seed", type=int, choices=SEEDS)
-    parser.add_argument("--seeds", type=int, nargs="+", choices=SEEDS, default=list(SEEDS), help="Launch/prepare: one to three seeds")
-    parser.add_argument("--rounds", type=int, default=DEFAULTS.rounds, help="Launch/prepare: scheduled rounds including initialization (default: 100)")
+    parser.add_argument("--seeds", type=int, nargs="+", choices=SEEDS, default=list(SEEDS), help="Prepare: one to three seeds")
+    parser.add_argument("--rounds", type=int, default=DEFAULTS.rounds, help="Prepare: scheduled rounds including initialization (default: 100)")
     parser.add_argument("--method", default="FULL", choices=("FULL",))
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--reuse-probe-response", action="store_true", help="Availability only: validate the saved successful chat response and finish its embedding check")
     args = parser.parse_args()
+    if args.action == "prepare" and args.dataset is None:
+        parser.error("prepare requires --dataset")
+    if args.action in ("seed", "worker") and args.seed is None:
+        parser.error(args.action + " requires --seed")
+    if args.resume and args.action != "worker":
+        parser.error("--resume applies to worker only")
     root = args.root.resolve()
     try:
-        if args.action == "launch":
-            launch(root, args.dataset, args.seeds, args.session, rounds=args.rounds)
-            return 0
         dataset = args.dataset if args.action == "prepare" else read(root / "manifest.json")["dataset"] if (root / "manifest.json").exists() else args.dataset or "novel"
-        select_environment(dataset)
-        metered.environment()
+        if args.action not in ("check", "summarize"):
+            metered.environment()
         metered.pilot.check_manifest = lambda path: check(path)[0]
         if args.action in ("seed", "worker") and args.seed not in read(root / "manifest.json")["seeds"]:
             raise ValueError("Seed is not included in this frozen stage")
@@ -317,8 +241,7 @@ def main():
         elif args.action == "check":
             manifest, _ = check(root)
             print(json.dumps({"status": "passed", "dataset": manifest["dataset"], "profile": PROFILE}))
-        elif args.action == "dispatch": dispatch(root, args.session)
-        elif args.action == "session": return run_session(root, args.session)
+        elif args.action == "run": return run(root)
         elif args.action == "supervise": metered.pilot.supervise(root)
         elif args.action == "summarize": metered.summarize(root)
         else: metered.pilot.worker(root, args.method, args.seed, seed_only=args.action == "seed", resume=args.resume)

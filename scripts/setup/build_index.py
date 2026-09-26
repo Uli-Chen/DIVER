@@ -6,7 +6,6 @@ import json
 import os
 from pathlib import Path
 import runpy
-import shlex
 import shutil
 import socket
 import subprocess
@@ -56,6 +55,24 @@ def index(root, dry_run=False):
     from dotenv import load_dotenv
     load_dotenv(PROJECT / '.env')
     check_prepared(root)
+    # Cost accounting uses provider usage; a remote price map is unnecessary.
+    os.environ.setdefault('LITELLM_LOCAL_MODEL_COST_MAP', 'True')
+    if dry_run:
+        # Validate GraphRAG's configuration without importing or running the
+        # indexing pipeline, which is unnecessary for this offline check.
+        connect = socket.socket.connect
+        def offline_only(*args, **kwargs):
+            raise RuntimeError('Network disabled during index configuration check')
+        try:
+            socket.socket.connect = offline_only
+            from graphrag.config.load_config import load_config
+            config = load_config(root)
+            if config.local_search.max_context_tokens != 12000:
+                raise ValueError('DIVER requires a 12000-token retrieval context')
+        finally:
+            socket.socket.connect = connect
+        print(json.dumps({'status': 'passed', 'api_requests': 0}))
+        return
     if not dry_run:
         import httpx
         from extraction.request_audit import RequestAudit
@@ -79,26 +96,23 @@ def index(root, dry_run=False):
         audit.journal_starts = True
         audit.install()
     # Some transitive NLTK imports reject a working directory containing .venv.
-    previous_cwd, previous_argv, connect = Path.cwd(), sys.argv, socket.socket.connect
+    previous_cwd, previous_argv = Path.cwd(), sys.argv
     try:
         os.chdir(tempfile.gettempdir())
         sys.argv = ['graphrag', 'index', '--root', str(root)]
-        if dry_run:
-            # GraphRAG's regular preflight makes live model calls even with dry-run.
-            sys.argv.extend(['--dry-run', '--skip-validation'])
-            def offline_only(*args, **kwargs):
-                raise RuntimeError('Network disabled during offline index configuration check')
-            socket.socket.connect = offline_only
         runpy.run_module('graphrag', run_name='__main__')
     finally:
-        socket.socket.connect = connect
         sys.argv = previous_argv
         os.chdir(previous_cwd)
 
 
-def supervise(root, session):
+def run(root):
+    """Build and validate the index in the foreground, with durable logs."""
+    check_prepared(root)
     result = {'status': 'failed', 'started': time.time()}
+    write(root / 'BUILD_STATUS.json', {**result, 'status': 'running'})
     try:
+        print('Building index; logs: ' + str(root / 'build.log'), flush=True)
         with (root / 'build.log').open('w') as log:
             process = subprocess.run([sys.executable, '-u', str(Path(__file__).resolve()),
                                       '_index', '--root', str(root)], stdout=log, stderr=subprocess.STDOUT)
@@ -119,15 +133,16 @@ def supervise(root, session):
     finally:
         result['finished'] = time.time()
         write(root / 'BUILD_STATUS.json', result)
-        subprocess.run(['rmux', 'kill-session', '-t', session], check=False)
+    if result['status'] != 'complete':
+        raise RuntimeError('Index build failed; inspect ' + str(root / 'build.log'))
+    print(json.dumps(result), flush=True)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=['prepare', 'check', 'launch', '_supervise', '_index'])
+    parser.add_argument('action', choices=['prepare', 'check', 'run', '_index'])
     parser.add_argument('--dataset', choices=['novel', 'medical', 'agriculture'])
     parser.add_argument('--root', type=Path)
-    parser.add_argument('--session')
     args = parser.parse_args()
     if args.root is None and args.dataset is None:
         parser.error('Supply --dataset or --root')
@@ -140,25 +155,8 @@ def main():
         index(root, dry_run=True)
     elif args.action == '_index':
         index(root)
-    elif args.action == '_supervise':
-        if not args.session:
-            parser.error('_supervise requires --session')
-        supervise(root, args.session)
     else:
-        if not args.session or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_' for c in args.session):
-            parser.error('launch requires a unique --session using letters, numbers, - or _')
-        record = check_prepared(root)
-        if record['dataset'] not in args.session:
-            parser.error('--session must include the dataset name and a run identifier')
-        if (root / 'BUILD_LAUNCH.json').exists():
-            raise RuntimeError('This index already has a launch record; use a new root for a new run')
-        subprocess.run(['rmux', '-V'], check=True)
-        command = shlex.join([sys.executable, '-u', str(Path(__file__).resolve()), '_supervise',
-                              '--root', str(root), '--session', args.session])
-        # The supervisor and GraphRAG child live in this dedicated session.
-        subprocess.run(['rmux', 'new-session', '-d', '-s', args.session, '-n', 'index', command], check=True)
-        write(root / 'BUILD_LAUNCH.json', {'session': args.session, 'root': str(root), 'command': command})
-        print('rmux attach -t ' + args.session)
+        run(root)
 
 
 if __name__ == '__main__':

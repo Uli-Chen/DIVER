@@ -18,7 +18,6 @@ PROTOCOL = "provider-usage-json-sse-v1"
 
 def environment():
     original_environment()
-    os.environ["AGEA_QUERY_MAX_TOKENS"] = "1024"
 
 
 def prepare(root, **kwargs):
@@ -26,7 +25,7 @@ def prepare(root, **kwargs):
     path = Path(root) / "manifest.json"
     manifest = json.loads(path.read_text())
     manifest["accounting_protocol"] = PROTOCOL
-    manifest["agea_query_max_tokens"] = 1024
+    manifest["query_max_tokens"] = 1024
     manifest["stream_include_usage"] = True
     manifest["runner_entrypoint"] = "scripts/run_bnrr.py"
     pilot.write_json(path, manifest)
@@ -34,7 +33,7 @@ def prepare(root, **kwargs):
 
 def check_manifest(root):
     manifest = original_check(root)
-    if manifest.get("accounting_protocol") != PROTOCOL or manifest.get("agea_query_max_tokens") != 1024:
+    if manifest.get("accounting_protocol") != PROTOCOL or manifest.get("query_max_tokens") != 1024:
         raise RuntimeError("Metered runner requires a new metered manifest; cannot resume historical cohorts")
     return manifest
 

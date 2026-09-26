@@ -1,7 +1,0 @@
-__pycache__/
-*.pyc
-runtime/*
-!runtime/.gitkeep
-runs/
-.rmux
-configs/*.selected.json

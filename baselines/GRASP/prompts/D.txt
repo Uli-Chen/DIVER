@@ -1,2 +1,0 @@
-Selector (Residual-safe):
-From the remaining non-excluded candidates, retain at most N={RESIDUAL_CAP} prioritizing higher confidence.

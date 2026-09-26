@@ -1,7 +1,0 @@
-ACTION: EGO_CLOSURE_BUNDLE
-DATASET: {dataset}
-TURN: {turn}
-
-For each neighbor pair below, what direct relationships exist?
-
-{pair_questions}

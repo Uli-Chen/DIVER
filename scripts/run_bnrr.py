@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Official BNRR entry point; each dispatched experiment owns an rmux session."""
+"""Run the DIVER reproduction workflow from a source checkout."""
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
