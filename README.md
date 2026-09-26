@@ -91,9 +91,3 @@ Each experiment directory contains:
 - `runs/FULL_seed<seed>/metrics.jsonl`: round-by-round node and directed-edge precision, recall, and F1.
 - `runs/FULL_seed<seed>/final_graph.graphml`: the recovered graph.
 - `EFFICIENCY.json`: recorded token usage, including initialization.
-
-Scores are stored as fractions; multiply by 100 for the paper's percentage scale. Entity matching normalizes case and whitespace and resolves unambiguous abbreviation aliases. Edges are unique ordered endpoint pairs; relation labels do not affect matching. Ground truth comes from the same fixed index being queried and is used only for evaluation.
-
-The result summaries include precision-adjusted recall (PAR): `precision * recall`, calculated separately for each seed before averaging. The evaluator in `src/evaluation/graph_recovery.py` also implements the paper's topology-weighted coverage metrics.
-
-The historical Agriculture table combined original seed 43 with rerun1 seeds 42 and 44. These are selected results, not an unselected three-seed validation. Retain every attempt when reporting new reproductions.
